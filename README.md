@@ -54,3 +54,5 @@ mysql -u root -p trenes_db < bd/trenes_db.sql
 uvicorn Backend.api:app --reload
 
 
+Desarrollado por: Ronald, Brayan, Daniel, Javier y Dayberson
+
