@@ -69,7 +69,7 @@ def get_db():
     db = mysql.connector.connect(
         host="127.0.0.1",
         user="root",
-        password="root",
+        password="1234",
         database="trenes_db"
     )
     try:
@@ -279,3 +279,30 @@ def check_db_status(db: mysql.connector = Depends(get_db)):
         return {"status": "Conectado a la base de datos"}
     except mysql.connector.Error as e:
         raise HTTPException(status_code=500, detail=f"Error de conexión: {str(e)}")
+
+
+
+@app.get("/reportes")
+def generar_reporte(payload: dict = Depends(verify_token), db: mysql.connector = Depends(get_db)):
+    if payload["rol"] != "admin":
+        raise HTTPException(status_code=403, detail="No tienes permisos para generar reportes")
+
+    cursor = db.cursor(dictionary=True)
+
+    # Obtener operadores
+    cursor.execute("SELECT operador, nombre FROM estaciones")
+    operadores = cursor.fetchall()
+
+    # Obtener trenes
+    cursor.execute("SELECT * FROM trenes")
+    trenes = cursor.fetchall()
+
+    # Obtener estaciones con horarios y boletos vendidos
+    cursor.execute("SELECT nombre, horarios, boletos_vendidos FROM estaciones")
+    estaciones = cursor.fetchall()
+
+    return JSONResponse(content={
+        "operadores": operadores,
+        "trenes": trenes,
+        "estaciones": estaciones
+    })

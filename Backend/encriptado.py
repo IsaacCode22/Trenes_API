@@ -5,7 +5,7 @@ from seguridad import hash_password, verify_password  # Importa tus funciones de
 db = mysql.connector.connect(
     host="127.0.0.1",
     user="root",
-    password="root",
+    password="1234",
     database="trenes_db"
 )
 cursor = db.cursor()
