@@ -298,7 +298,7 @@ def generar_reporte(payload: dict = Depends(verify_token), db: mysql.connector =
     trenes = cursor.fetchall()
 
     # Obtener estaciones con horarios y boletos vendidos
-    cursor.execute("SELECT nombre, horarios, boletos_vendidos FROM estaciones")
+    cursor.execute("SELECT nombre, horarios, operador, boletos_vendidos, estado, precio FROM estaciones")
     estaciones = cursor.fetchall()
 
     return JSONResponse(content={

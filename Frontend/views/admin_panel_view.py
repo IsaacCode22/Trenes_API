@@ -4,7 +4,7 @@ from models.estacion import Estacion
 from models.estacion import estaciones
 from utils.helpers import mostrar_mensaje
 
-import requests
+import requests 
 import json
 API_URL = "http://127.0.0.1:8000"
 
