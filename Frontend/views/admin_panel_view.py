@@ -1,16 +1,27 @@
 import flet as ft
+from utils.pdf_generator import generar_pdf
 from models.estacion import Estacion
 from models.estacion import estaciones
-from utils.helpers import mostrar_mensaje, generar_archivo_ventas
-import requests
-import json
+from utils.helpers import mostrar_mensaje
 
+import requests 
+import json
 API_URL = "http://127.0.0.1:8000"
 
 def vista_panel_admin(page, token):
      
     headers = {"Authorization": f"Bearer {token}"}
+    def generar_reporte_pdf(page):
+        token = page.session.get("token")
+        if not token:
+            mostrar_mensaje(page, "Error: No hay token disponible", tipo="error")
+            return
 
+        try:
+            generar_pdf(token)
+            mostrar_mensaje(page, "Reporte PDF generado exitosamente", tipo="success")
+        except Exception as e:
+            mostrar_mensaje(page, f"Error al generar el PDF: {str(e)}", tipo="error")
     def obtener_estaciones():
         try:
             response = requests.get(f"{API_URL}/estaciones", headers=headers)
@@ -131,8 +142,10 @@ def vista_panel_admin(page, token):
             ft.Divider(color="#4511ED"),
             ft.Text(f"Operadores Activos: {active_operators}", color=ft.colors.WHITE),
             ft.Text(f"Operadores Inactivos: {inactive_operators}", color=ft.colors.WHITE),
-            ft.IconButton(ft.icons.LOGOUT, icon_color=ft.colors.RED_400, on_click=lambda e: page.go("/login")
-            )
+            ft.Row([
+                ft.IconButton(ft.icons.LOGOUT, icon_color=ft.colors.RED_400, on_click=lambda e: page.go("/login")),
+                ft.IconButton(ft.icons.PRINT, icon_color=ft.colors.WHITE, on_click=lambda e: generar_reporte_pdf(page)
+            )])
         ], spacing=15),
         padding=30,
         width=300,
