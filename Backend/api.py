@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 import jwt
@@ -94,8 +94,44 @@ class LoginRequest(BaseModel):
 
 # Endpoint de inicio de sesión
 @app.post("/login")
-def login():
-    return 0
+def login(request: LoginRequest, db: mysql.connector = Depends(get_db)):
+    cursor = db.cursor()
+
+    print(f"🔹 Intento de login: {request.operador} - {request.contrasena}")  
+
+    if request.operador == "admin" and request.contrasena == "admin123":
+        print("Acceso concedido como administrador")
+        rol = "admin"
+        id_estacion = 1  
+    else:
+        cursor.execute("SELECT id, contrasena FROM estaciones WHERE operador = %s", 
+                       (request.operador,))
+        result = cursor.fetchone()
+        
+        if not result:
+            print("Operador no encontrado en la base de datos")
+            return JSONResponse(status_code=401, content={"error": "Credenciales inválidas"})
+
+        id_estacion, hashed_password = result
+
+        print(f"🔹 Hash en BD: {hashed_password}")  # Esto te dirá qué hash está almacenado
+
+        if not verify_password(request.contrasena, hashed_password):
+            print("La contraseña es incorrecta")
+            return JSONResponse(status_code=401, content={"error": "Credenciales inválidas"})
+
+        print("Contraseña verificada correctamente")
+        rol = "operador"
+
+    payload = {
+        "id": id_estacion,
+        "rol": rol,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+    
+    return JSONResponse(status_code=200, content={"token": token, "rol": rol})
+
 
 
 @app.get("/saludo/")
